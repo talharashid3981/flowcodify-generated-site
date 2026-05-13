@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowRight, 
   CheckCircle2, 
@@ -9,39 +9,46 @@ import {
   X, 
   Moon, 
   Sun, 
-  ChevronDown, 
+  ChevronRight, 
   ExternalLink, 
   Mail, 
   Phone, 
   MapPin,
   BarChart3,
-  MousePointer2
+  MousePointer2,
+  ArrowUpRight,
+  Globe,
+  Cpu,
+  Smartphone,
+  Star,
+  ShieldCheck,
+  TrendingUp
 } from 'lucide-react';
 
 const THEMES = {
   light: {
-    bg: '#FBFBF9',
+    bg: '#FDFBFA',
     text: '#1A1A1A',
-    accent: '#C3523E',
-    secondary: '#EAEAEA',
-    muted: '#666666',
-    border: '#D1D1D1',
+    accent: '#B8860B',
+    secondary: '#F2EEE9',
+    muted: '#6B6B6B',
+    border: '#E8E4DE',
     cardBg: '#FFFFFF',
-    canvasBg: '#FBFBF9',
-    canvasLine: 'rgba(0,0,0,0.1)',
-    canvasNode: '#C3523E'
+    canvasBg: '#FDFBFA',
+    canvasLine: 'rgba(184, 134, 11, 0.15)',
+    canvasNode: '#B8860B'
   },
   dark: {
-    bg: '#0D0D0D',
+    bg: '#0F110F',
     text: '#F5F5F5',
-    accent: '#FF6B57',
-    secondary: '#1A1A1A',
+    accent: '#E6B800',
+    secondary: '#1A1D1A',
     muted: '#A0A0A0',
-    border: '#2A2A2A',
-    cardBg: '#141414',
-    canvasBg: '#0D0D0D',
-    canvasLine: 'rgba(255,255,255,0.1)',
-    canvasNode: '#FF6B57'
+    border: '#2A2E2A',
+    cardBg: '#161916',
+    canvasBg: '#0F110F',
+    canvasLine: 'rgba(230, 184, 0, 0.2)',
+    canvasNode: '#E6B800'
   }
 };
 
@@ -56,60 +63,66 @@ const StrategyCanvas = ({ theme }) => {
     
     const resize = () => {
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.7;
+      canvas.height = window.innerHeight * 0.8;
     };
     
     window.addEventListener('resize', resize);
     resize();
 
     const nodes = [];
-    const nodeCount = 12;
+    const nodeCount = 40;
+    
     for (let i = 0; i < nodeCount; i++) {
       nodes.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 0.5,
         vy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 4 + 2,
+        size: Math.random() * 3 + 1,
         phase: Math.random() * Math.PI * 2
       });
     }
 
-    const draw = (time) => {
+    const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       const colors = THEMES[theme];
       
       nodes.forEach((node, i) => {
         node.x += node.vx;
         node.y += node.vy;
-        
+
         if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
         if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+        const dx = mouseRef.current.x - node.x;
+        const dy = mouseRef.current.y - node.y;
+        const dist = Math.hypot(dx, dy);
         
-        const distToMouse = Math.hypot(node.x - mouseRef.current.x, node.y - mouseRef.current.y);
-        if (distToMouse < 200) {
-          const angle = Math.atan2(node.y - mouseRef.current.y, node.x - mouseRef.current.x);
-          node.x += Math.cos(angle) * 0.2;
-          node.y += Math.sin(angle) * 0.2;
+        if (dist < 200) {
+          const force = (200 - dist) / 200;
+          node.x -= dx * force * 0.02;
+          node.y -= dy * force * 0.02;
         }
 
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
         ctx.fillStyle = colors.canvasNode;
+        ctx.globalAlpha = 0.6;
         ctx.fill();
+        ctx.globalAlpha = 1.0;
 
-        nodes.slice(i + 1).forEach(other => {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const other = nodes[j];
           const d = Math.hypot(node.x - other.x, node.y - other.y);
-          if (d < 250) {
+          if (d < 150) {
             ctx.beginPath();
             ctx.moveTo(node.x, node.y);
             ctx.lineTo(other.x, other.y);
             ctx.strokeStyle = colors.canvasLine;
-            ctx.lineWidth = 1 - d / 250;
+            ctx.lineWidth = 0.5;
             ctx.stroke();
           }
-        });
+        }
       });
 
       animationFrameId = requestAnimationFrame(draw);
@@ -167,23 +180,26 @@ const Navbar = ({ theme, toggleTheme, activeSection, setActiveSection }) => {
       <div style={{ 
         maxWidth: '1200px', 
         margin: '0 auto', 
-        padding: '1rem 2rem', 
+        padding: '1.25rem 2rem', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center' 
       }}>
         <div style={{ 
-          fontSize: '1.5rem', 
+          fontSize: '1.4rem', 
           fontWeight: '800', 
-          letterSpacing: '-0.05em', 
+          letterSpacing: '-0.04em', 
           color: colors.text, 
-          cursor: 'pointer' 
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem'
         }}>
           AXON<span style={{ color: colors.accent }}>.</span>STUDIO
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <div style={{ display: 'none', md: 'flex', gap: '2rem' }}>
+          <div style={{ display: 'none', md: 'flex', gap: '2.5rem' }}>
             {navLinks.map(link => (
               <a 
                 key={link.name} 
@@ -196,35 +212,54 @@ const Navbar = ({ theme, toggleTheme, activeSection, setActiveSection }) => {
                 style={{ 
                   textDecoration: 'none', 
                   color: activeSection === link.href.slice(1) ? colors.accent : colors.text, 
-                  fontSize: '0.9rem', 
-                  fontWeight: '500', 
-                  transition: 'color 0.2s ease',
-                  opacity: activeSection === link.href.slice(1) ? 1 : 0.7
+                  fontSize: '0.85rem', 
+                  fontWeight: '600', 
+                  transition: 'all 0.2s ease',
+                  opacity: activeSection === link.href.slice(1) ? 1 : 0.6,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
                 }}
               >
                 {link.name}
               </a>
             ))}
           </div>
-
           <button 
             onClick={toggleTheme} 
             style={{ 
               background: 'none', 
               border: `1px solid ${colors.border}`, 
-              padding: '8px', 
+              padding: '0.5rem', 
               borderRadius: '8px', 
               cursor: 'pointer', 
-              color: colors.text,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              color: colors.text, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              transition: 'all 0.2s ease'
             }}
-            aria-label="Toggle Theme"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
-
+          <button 
+            style={{ 
+              backgroundColor: colors.text, 
+              color: colors.bg, 
+              border: 'none', 
+              padding: '0.6rem 1.2rem', 
+              borderRadius: '6px', 
+              fontWeight: '600', 
+              fontSize: '0.85rem', 
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          >
+            Start a Project
+          </button>
           <button 
             onClick={() => setIsOpen(!isOpen)} 
             style={{ 
@@ -240,43 +275,6 @@ const Navbar = ({ theme, toggleTheme, activeSection, setActiveSection }) => {
           </button>
         </div>
       </div>
-      
-      {isOpen && (
-        <div style={{ 
-          position: 'absolute', 
-          top: '100%', 
-          left: 0, 
-          width: '100%', 
-          backgroundColor: colors.bg, 
-          borderBottom: `1px solid ${colors.border}`,
-          padding: '2rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
-          zIndex: 999
-        }}>
-          {navLinks.map(link => (
-            <a 
-              key={link.name} 
-              href={link.href} 
-              onClick={(e) => {
-                e.preventDefault();
-                setIsOpen(false);
-                setActiveSection(link.href.slice(1));
-                document.querySelector(link.href).scrollIntoView({ behavior: 'smooth' });
-              }}
-              style={{ 
-                textDecoration: 'none', 
-                color: colors.text, 
-                fontSize: '1.2rem', 
-                fontWeight: '600' 
-              }}
-            >
-              {link.name}
-            </a>
-          ))}
-        </div>
-      )}
     </nav>
   );
 };
@@ -289,9 +287,9 @@ const Hero = ({ theme }) => {
       minHeight: '100vh', 
       display: 'flex', 
       alignItems: 'center', 
-      padding: '0 2rem',
-      overflow: 'hidden',
-      backgroundColor: colors.bg
+      padding: '0 2rem', 
+      paddingTop: '80px',
+      overflow: 'hidden'
     }}>
       <StrategyCanvas theme={theme} />
       <div style={{ 
@@ -299,129 +297,134 @@ const Hero = ({ theme }) => {
         margin: '0 auto', 
         width: '100%', 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-        gap: '4rem', 
-        alignItems: 'center',
-        zIndex: 10
+        gridTemplateColumns: 'repeat(12, 1fr)', 
+        gap: '2rem', 
+        alignItems: 'center' 
       }}>
-        <div style={{ maxWidth: '600px' }}>
+        <div style={{ gridColumn: 'span 7' }}>
           <div style={{ 
-            display: 'inline-block', 
-            padding: '6px 12px', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            backgroundColor: colors.secondary, 
+            padding: '0.4rem 0.8rem', 
             borderRadius: '20px', 
-            backgroundColor: colors.accent + '15', 
-            color: colors.accent, 
-            fontSize: '0.8rem', 
+            fontSize: '0.75rem', 
             fontWeight: '700', 
-            marginBottom: '1.5rem', 
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase'
+            color: colors.accent, 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em', 
+            marginBottom: '1.5rem' 
           }}>
-            Precision Strategy & Design
+            <Zap size={12} /> Independent Design Studio
           </div>
           <h1 style={{ 
-            fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', 
+            fontSize: 'clamp(3rem, 8vw, 5rem)', 
             lineHeight: '1.1', 
             fontWeight: '800', 
             color: colors.text, 
-            marginBottom: '1.5rem',
-            letterSpacing: '-0.03em'
+            letterSpacing: '-0.03em', 
+            marginBottom: '2rem' 
           }}>
-            Scaling <span style={{ color: colors.accent }}>products</span> through conversion systems.
+            Engineering <span style={{ color: colors.accent }}>Conversion</span> Through Strategy.
           </h1>
           <p style={{ 
-            fontSize: '1.2rem', 
-            color: colors.muted, 
+            fontSize: '1.25rem', 
             lineHeight: '1.6', 
-            marginBottom: '2.5rem',
-            maxWidth: '500px'
+            color: colors.muted, 
+            maxWidth: '600px', 
+            marginBottom: '3rem' 
           }}>
-            We partner with high-growth startups to bridge the gap between product vision and market dominance. No fluff, just high-conversion design and rigorous strategy.
+            We help high-growth startups define their product strategy, design their launch identity, and build systems that convert users into advocates.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <a href="#contact" style={{ 
+          <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <button style={{ 
               backgroundColor: colors.accent, 
               color: '#FFF', 
+              border: 'none', 
               padding: '1rem 2rem', 
               borderRadius: '8px', 
-              textDecoration: 'none', 
+              fontSize: '1rem', 
               fontWeight: '600', 
+              cursor: 'pointer', 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '0.5rem',
+              gap: '0.75rem',
               transition: 'transform 0.2s ease'
             }} 
             onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-              Start Your Project <ArrowRight size={18} />
-            </a>
-            <a href="#work" style={{ 
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              View Our Work <ArrowRight size={20} />
+            </button>
+            <button style={{ 
               backgroundColor: 'transparent', 
               color: colors.text, 
+              border: `1px solid ${colors.border}`, 
               padding: '1rem 2rem', 
               borderRadius: '8px', 
-              textDecoration: 'none', 
+              fontSize: '1rem', 
               fontWeight: '600', 
-              border: `1px solid ${colors.border}`,
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem',
+              cursor: 'pointer',
               transition: 'all 0.2s ease'
-            }} 
+            }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-              View Case Studies
-            </a>
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              Our Process
+            </button>
           </div>
         </div>
         <div style={{ 
-          position: 'relative', 
+          gridColumn: 'span 5', 
           display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center' 
+          flexDirection: 'column', 
+          gap: '2rem', 
+          position: 'relative' 
         }}>
           <div style={{ 
-            width: '100%', 
-            aspectRatio: '1/1', 
-            maxWidth: '500px', 
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{ 
-              width: '80%', 
-              height: '80%', 
-              border: `2px solid ${colors.accent}`, 
-              borderRadius: '24px', 
-              position: 'absolute', 
-              rotate: '45deg', 
-              opacity: 0.2 
-            }} />
-            <div style={{ 
-              width: '60%', 
-              height: '60%', 
-              border: `2px solid ${colors.text}`, 
-              borderRadius: '24px', 
-              position: 'absolute', 
-              rotate: '-15deg', 
-              backgroundColor: colors.cardBg,
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-              display: 'flex',
-              flexDirection: 'column',
-              padding: '2rem',
-              zIndex: 2
-            }}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#FF5F56' }} />
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#FFBD2E' }} />
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#27C93F' }} />
+            backgroundColor: colors.cardBg, 
+            border: `1px solid ${colors.border}`, 
+            padding: '2rem', 
+            borderRadius: '24px', 
+            boxShadow: '0 20px 40px rgba(0,0,0,0.05)', 
+            transform: 'rotate(-2deg)', 
+            transition: 'transform 0.3s ease' 
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'rotate(-2deg) scale(1)'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.5rem', backgroundColor: colors.secondary, borderRadius: '8px', color: colors.accent }}>
+                <BarChart3 size={20} />
               </div>
-              <div style={{ height: '12px', width: '40%', backgroundColor: colors.secondary, borderRadius: '4px', marginBottom: '1rem' }} />
-              <div style={{ height: '8px', width: '100%', backgroundColor: colors.secondary, borderRadius: '4px', marginBottom: '0.5rem' }} />
-              <div style={{ height: '8px', width: '80%', backgroundColor: colors.secondary, borderRadius: '4px', marginBottom: '2rem' }} />
-              <div style={{ height: '40px', width: '100%', backgroundColor: colors.accent, borderRadius: '6px' }} />
+              <span style={{ fontWeight: '700', color: colors.text }}>Conversion Metric</span>
             </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: '800', color: colors.text }}>+142%</div>
+            <div style={{ fontSize: '0.875rem', color: colors.muted }}>Avg. growth for launch clients</div>
+          </div>
+          <div style={{ 
+            backgroundColor: colors.cardBg, 
+            border: `1px solid ${colors.border}`, 
+            padding: '2rem', 
+            borderRadius: '24px', 
+            boxShadow: '0 20px 40px rgba(0,0,0,0.05)', 
+            transform: 'rotate(3deg)', 
+            marginTop: '-2rem',
+            marginLeft: '2rem',
+            transition: 'transform 0.3s ease' 
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'rotate(3deg) scale(1)'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.5rem', backgroundColor: colors.secondary, borderRadius: '8px', color: colors.accent }}>
+                <Target size={20} />
+              </div>
+              <span style={{ fontWeight: '700', color: colors.text }}>Market Fit</span>
+            </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: '800', color: colors.text }}>98%</div>
+            <div style={{ fontSize: '0.875rem', color: colors.muted }}>Product-market alignment rate</div>
           </div>
         </div>
       </div>
@@ -432,55 +435,64 @@ const Hero = ({ theme }) => {
 const Services = ({ theme }) => {
   const colors = THEMES[theme];
   const services = [
-    { 
-      title: 'Product Strategy', 
-      desc: 'Defining your market position, user journeys, and growth levers before a single pixel is drawn.', 
-      icon: <Target size={32} />, 
-      features: ['Competitive Analysis', 'User Persona Mapping', 'Roadmap Planning', 'Value Prop Definition'] 
+    {
+      title: 'Product Strategy',
+      description: 'We map your product ecosystem, identify friction points, and define the North Star metric that drives sustainable growth.',
+      icon: <Layers size={32} />,
+      features: ['User Journey Mapping', 'Competitive Analysis', 'Value Proposition Design', 'GTM Strategy'],
+      outcome: 'A validated roadmap for scale.'
     },
-    { 
-      title: 'Launch Design', 
-      desc: 'Creating high-impact visual identities and landing pages that turn early interest into active users.', 
-      icon: <Zap size={32} />, 
-      features: ['Visual Identity', 'Conversion Landing Pages', 'Interactive Prototypes', 'Design Systems'] 
+    {
+      title: 'Launch Design',
+      description: 'First impressions are everything. We create a high-impact visual identity and landing experience that commands attention.',
+      icon: <Zap size={32} />,
+      features: ['Visual Identity', 'High-Conversion Landing Pages', 'Brand Guidelines', 'Interactive Prototyping'],
+      outcome: 'A launch that converts on day one.'
     },
-    { 
-      title: 'Conversion Systems', 
-      desc: 'Continuous optimization of your product funnel using A/B testing and behavioral psychology.', 
-      icon: <BarChart3 size={32} />, 
-      features: ['Funnel Optimization', 'CRO Audits', 'Onboarding Flows', 'Churn Reduction'] 
-    },
+    {
+      title: 'Conversion Systems',
+      description: 'Optimization is a science. We implement A/B testing, funnel analytics, and UX refinements to maximize your LTV.',
+      icon: <TrendingUp size={32} />,
+      features: ['Conversion Rate Optimization', 'Funnel Audits', 'User Behavior Analysis', 'Retention Systems'],
+      outcome: 'Maximum efficiency per visitor.'
+    }
   ];
 
   return (
     <section id="services" style={{ 
       padding: '8rem 2rem', 
-      backgroundColor: colors.bg,
+      backgroundColor: colors.bg, 
       color: colors.text 
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '4rem', maxWidth: '700px' }}>
-          <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-            Engineered for <span style={{ color: colors.accent }}>growth</span>.
-          </h2>
-          <p style={{ fontSize: '1.2rem', color: colors.muted }}>
-            We don't just make things look pretty. We build frameworks that drive revenue and user acquisition.
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem', gap: '2rem', flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: '600px' }}>
+            <span style={{ color: colors.accent, fontWeight: '700', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.1em' }}>Our Expertise</span>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', marginTop: '1rem', letterSpacing: '-0.02em' }}>
+              Strategic Design for Modern Scale.
+            </h2>
+          </div>
+          <p style={{ maxWidth: '400px', color: colors.muted, fontSize: '1.1rem', lineHeight: '1.6' }}>
+            We don't just make things look pretty. We build digital assets that act as revenue drivers for your business.
           </p>
         </div>
+
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
           gap: '2rem' 
         }}>
-          {services.map((s, i) => (
-            <div key={i} style={{ 
-              padding: '3rem', 
+          {services.map((service, idx) => (
+            <div key={idx} style={{ 
               backgroundColor: colors.cardBg, 
               border: `1px solid ${colors.border}`, 
+              padding: '3rem', 
               borderRadius: '24px', 
               transition: 'all 0.3s ease',
-              cursor: 'default'
-            }} 
+              cursor: 'default',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = colors.accent;
               e.currentTarget.style.transform = 'translateY(-10px)';
@@ -488,24 +500,30 @@ const Services = ({ theme }) => {
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = colors.border;
               e.currentTarget.style.transform = 'translateY(0)';
-            }}>
-              <div style={{ color: colors.accent, marginBottom: '1.5rem' }}>{s.icon}</div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>{s.title}</h3>
-              <p style={{ color: colors.muted, marginBottom: '2rem', lineHeight: '1.6' }}>{s.desc}</p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {s.features.map((f, j) => (
-                  <li key={j} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.75rem', 
-                    marginBottom: '0.75rem', 
-                    fontSize: '0.95rem', 
-                    color: colors.text 
-                  }}>
-                    <CheckCircle2 size={16} style={{ color: colors.accent }} /> {f}
-                  </li>
+            }}
+            >
+              <div style={{ color: colors.accent, marginBottom: '2rem' }}>{service.icon}</div>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>{service.title}</h3>
+              <p style={{ color: colors.muted, lineHeight: '1.6', marginBottom: '2rem' }}>{service.description}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                {service.features.map((feat, fIdx) => (
+                  <div key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>
+                    <CheckCircle2 size={16} color={colors.accent} /> {feat}
+                  </div>
                 ))}
-              </ul>
+              </div>
+              <div style={{ 
+                paddingTop: '2rem', 
+                borderTop: `1px solid ${colors.border}`, 
+                fontSize: '0.875rem', 
+                fontWeight: '700', 
+                color: colors.text,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{ color: colors.accent }}>Outcome:</span> {service.outcome}
+              </div>
             </div>
           ))}
         </div>
@@ -516,103 +534,192 @@ const Services = ({ theme }) => {
 
 const Work = ({ theme }) => {
   const colors = THEMES[theme];
-  const cases = [
+  const projects = [
     {
-      client: 'Nexus AI',
-      title: 'Redefining Enterprise LLM Onboarding',
+      title: 'Lumina FinTech',
+      category: 'Launch Design & Strategy',
+      description: 'Redefining the wealth management experience for Gen-Z investors.',
+      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800',
+      metrics: '200% increase in sign-ups'
+    },
+    {
+      title: 'Apex Health',
       category: 'Conversion Systems',
-      result: '+140% Activation Rate',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
-      description: 'Implemented a guided a-ha moment framework that reduced time-to-value from 3 days to 15 minutes.'
+      description: 'Scaling a telemedicine platform through rigorous funnel optimization.',
+      image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=800',
+      metrics: '42% reduction in churn'
     },
     {
-      client: 'Veloce',
-      title: 'High-Velocity Launch Design',
-      category: 'Launch Design',
-      result: '$2.4M Seed Funding',
-      image: 'https://images.unsplash.com/photo-1634017839464-5c339625972a?auto=format&fit=crop&w=800&q=80',
-      description: 'Built a visually aggressive brand system and landing page that captured 50k waitlist signups in 2 weeks.'
-    },
-    {
-      client: 'Solis Health',
-      title: 'Patient Journey Optimization',
+      title: 'Nova AI',
       category: 'Product Strategy',
-      result: '-30% Churn Rate',
-      image: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=800&q=80',
-      description: 'Re-mapped the entire patient lifecycle, removing high-friction points in the booking flow.'
+      description: 'Positioning an LLM-based productivity tool in a crowded market.',
+      image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=800',
+      metrics: '1M+ users in 3 months'
     }
   ];
 
   return (
-    <section id="work" style={{ padding: '8rem 2rem', backgroundColor: colors.secondary }}>
+    <section id="work" style={{ 
+      padding: '8rem 2rem', 
+      backgroundColor: colors.secondary, 
+      color: colors.text 
+    }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem' }}>
-          <div>
-            <h2 style={{ fontSize: '3rem', fontWeight: '800', color: colors.text, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Proven <span style={{ color: colors.accent }}>Outcomes</span>.
-            </h2>
-            <p style={{ fontSize: '1.2rem', color: colors.muted, maxWidth: '500px' }}>
-              We don't ship features; we ship business results. Here is how we do it.
-            </p>
-          </div>
-          <a href="#" style={{ 
-            color: colors.text, 
-            textDecoration: 'none', 
-            fontWeight: '600', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.5rem',
-            borderBottom: `2px solid ${colors.accent}`,
-            paddingBottom: '4px'
-          }}>
-            All Projects <ExternalLink size={16} />
-          </a>
+        <div style={{ marginBottom: '4rem' }}>
+          <span style={{ color: colors.accent, fontWeight: '700', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.1em' }}>Case Studies</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', marginTop: '1rem', letterSpacing: '-0.02em' }}>
+            Proven Impact. Real Results.
+          </h2>
         </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '3rem' }}>
-          {cases.map((c, i) => (
-            <div key={i} style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '1.5rem', 
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
+          gap: '3rem' 
+        }}>
+          {projects.map((project, idx) => (
+            <div key={idx} style={{ 
+              cursor: 'pointer', 
+              group: 'true',
+              transition: 'all 0.3s ease' 
             }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-10px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
               <div style={{ 
-                width: '100%', 
-                height: '400px', 
+                position: 'relative', 
                 borderRadius: '24px', 
                 overflow: 'hidden', 
-                position: 'relative',
-                backgroundColor: '#EEE'
+                aspectRatio: '4/5', 
+                marginBottom: '1.5rem',
+                backgroundColor: colors.border
               }}>
-                <img src={c.image} alt={c.client} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} 
+                <img 
+                  src={project.image} 
+                  alt={project.title} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 />
                 <div style={{ 
                   position: 'absolute', 
-                  top: '1.5rem', 
-                  right: '1.5rem', 
-                  backgroundColor: colors.accent, 
-                  color: '#FFF', 
-                  padding: '6px 12px', 
-                  borderRadius: '8px', 
-                  fontSize: '0.8rem', 
-                  fontWeight: '700' 
+                  bottom: '1.5rem', 
+                  left: '1.5rem', 
+                  backgroundColor: colors.cardBg, 
+                  padding: '0.75rem 1rem', 
+                  borderRadius: '12px', 
+                  fontSize: '0.875rem', 
+                  fontWeight: '700', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  boxShadow: '0 10px 20px rgba(0,0,0,0.1)' 
                 }}>
-                  {c.result}
+                  <TrendingUp size={16} color={colors.accent} /> {project.metrics}
                 </div>
               </div>
-              <div>
-                <div style={{ color: colors.accent, fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                  {c.category}
-                </div>
-                <h3 style={{ fontSize: '1.75rem', fontWeight: '700', color: colors.text, marginBottom: '0.75rem' }}>{c.title}</h3>
-                <p style={{ color: colors.muted, lineHeight: '1.6' }}>{c.description}</p>
+              <span style={{ color: colors.accent, fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase' }}>{project.category}</span>
+              <h3 style={{ fontSize: '1.75rem', fontWeight: '800', margin: '0.5rem 0 1rem 0' }}>{project.title}</h3>
+              <p style={{ color: colors.muted, lineHeight: '1.6', marginBottom: '1.5rem' }}>{project.description}</p>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                fontWeight: '700', 
+                fontSize: '0.9rem', 
+                color: colors.text,
+                transition: 'gap 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.gap = '0.75rem'}
+              onMouseLeave={(e) => e.currentTarget.style.gap = '0.5rem'}
+              >
+                View Case Study <ArrowUpRight size={18} />
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Process = ({ theme }) => {
+  const colors = THEMES[theme];
+  const steps = [
+    {
+      step: '01',
+      title: 'The Audit',
+      description: 'We deep-dive into your current product metrics, user feedback, and competitive landscape to find the "leaks" in your conversion funnel.',
+      icon: <Target size={24} />
+    },
+    {
+      step: '02',
+      title: 'The Strategy',
+      description: 'We map out a high-resolution roadmap. Not just a list of features, but a sequence of experiments designed to move the needle.',
+      icon: <Layers size={24} />
+    },
+    {
+      step: '03',
+      title: 'The Execution',
+      description: 'We build and launch the identity and interfaces. We focus on high-fidelity design that balances beauty with brutal efficiency.',
+      icon: <Zap size={24} />
+    },
+    {
+      step: '04',
+      title: 'The Optimization',
+      description: 'Launch is just the start. We monitor, test, and refine the system based on real-world user data until the target KPI is met.',
+      icon: <TrendingUp size={24} />
+    }
+  ];
+
+  return (
+    <section style={{ 
+      padding: '8rem 2rem', 
+      backgroundColor: colors.bg, 
+      color: colors.text 
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '6rem' }}>
+          <span style={{ color: colors.accent, fontWeight: '700', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.1em' }}>Methodology</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', marginTop: '1rem', letterSpacing: '-0.02em' }}>
+            From Chaos to Conversion.
+          </h2>
+        </div>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gap: '2rem', 
+          position: 'relative' 
+        }}>
+          {steps.map((step, idx) => (
+            <div key={idx} style={{ 
+              padding: '2rem', 
+              position: 'relative',
+              borderLeft: `2px solid ${colors.border}`,
+              paddingLeft: '3rem'
+            }}>
+              <div style={{ 
+                position: 'absolute', 
+                left: '-14px', 
+                top: '0', 
+                width: '26px', 
+                height: '26px', 
+                borderRadius: '50%', 
+                backgroundColor: colors.bg, 
+                border: `2px solid ${colors.accent}`, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: colors.accent, 
+                fontWeight: '700', 
+                fontSize: '0.75rem' 
+              }}>
+                {step.step}
+              </div>
+              <div style={{ color: colors.accent, marginBottom: '1rem' }}>{step.icon}</div>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>{step.title}</h3>
+              <p style={{ color: colors.muted, lineHeight: '1.6' }}>{step.description}</p>
             </div>
           ))}
         </div>
@@ -624,59 +731,71 @@ const Work = ({ theme }) => {
 const Pricing = ({ theme }) => {
   const colors = THEMES[theme];
   const plans = [
-    { 
-      name: 'Sprint', 
-      price: '5,000', 
-      period: 'fixed', 
-      desc: 'Perfect for rapid validation and landing page launches.', 
-      features: ['1 High-Conversion Landing Page', 'Product Strategy Session', 'Basic Visual Identity', '2-Week Delivery'],
-      highlight: false
+    {
+      name: 'Strategy Sprint',
+      price: '4,500',
+      period: '/project',
+      description: 'Ideal for early-stage startups needing a clear direction and validated roadmap.',
+      features: ['Market Analysis', 'User Personas', 'GTM Roadmap', 'Value Prop Definition', '1 Week Turnaround'],
+      recommended: false,
+      buttonText: 'Book a Sprint'
     },
-    { 
-      name: 'Scale', 
-      price: '12,000', 
-      period: 'fixed', 
-      desc: 'Comprehensive design system and full-funnel optimization.', 
-      features: ['Complete Design System', 'Full User Journey Mapping', 'Conversion Audit & Implementation', '4-Week Delivery', 'Post-Launch Analysis'],
-      highlight: true
+    {
+      name: 'Launch Engine',
+      price: '12,000',
+      period: '/project',
+      description: 'A complete design and strategy package to launch your product with maximum impact.',
+      features: ['Everything in Strategy', 'Full Visual Identity', 'Conversion Landing Page', 'Pitch Deck Design', 'Launch Asset Kit'],
+      recommended: true,
+      buttonText: 'Get Launched'
     },
-    { 
-      name: 'Retainer', 
-      price: '4,000', 
-      period: 'mo', 
-      desc: 'Ongoing strategic growth and design partnership.', 
-      features: ['Unlimited Design Requests', 'Weekly Strategy Syncs', 'Continuous A/B Testing', 'Priority Support', 'Conversion Monitoring'],
-      highlight: false
-    },
+    {
+      name: 'Growth System',
+      price: '3,000',
+      period: '/month',
+      description: 'Ongoing optimization and design support to scale your product conversion rates.',
+      features: ['Everything in Launch', 'Weekly A/B Testing', 'Conversion Audit', 'UX Refinements', 'Monthly Growth Report'],
+      recommended: false,
+      buttonText: 'Scale Now'
+    }
   ];
 
   return (
-    <section id="pricing" style={{ padding: '8rem 2rem', backgroundColor: colors.bg, color: colors.text }}>
+    <section id="pricing" style={{ 
+      padding: '8rem 2rem', 
+      backgroundColor: colors.secondary, 
+      color: colors.text 
+    }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem' }}>Transparent <span style={{ color: colors.accent }}>Investment</span>.</h2>
-          <p style={{ fontSize: '1.2rem', color: colors.muted, maxWidth: '600px', margin: '0 auto' }}>
-            No hidden fees or hourly billing. We charge for outcomes and value delivered.
+        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+          <span style={{ color: colors.accent, fontWeight: '700', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.1em' }}>Investment</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', marginTop: '1rem', letterSpacing: '-0.02em' }}>
+            Transparent Pricing.
+          </h2>
+          <p style={{ color: colors.muted, maxWidth: '600px', margin: '1.5rem auto', lineHeight: '1.6' }}>
+            We offer fixed-price packages to eliminate uncertainty. No hidden fees, just high-impact results.
           </p>
         </div>
+
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '2rem',
-          alignItems: 'center'
+          gap: '2rem', 
+          alignItems: 'center' 
         }}>
-          {plans.map((p, i) => (
-            <div key={i} style={{ 
+          {plans.map((plan, idx) => (
+            <div key={idx} style={{ 
+              backgroundColor: plan.recommended ? colors.cardBg : 'transparent', 
+              border: `2px solid ${plan.recommended ? colors.accent : colors.border}`, 
               padding: '3rem', 
-              borderRadius: '24px', 
-              border: p.highlight ? `3px solid ${colors.accent}` : `1px solid ${colors.border}`, 
-              backgroundColor: p.highlight ? colors.cardBg : 'transparent',
+              borderRadius: '32px', 
               position: 'relative',
               transition: 'transform 0.3s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-              {p.highlight && (
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {plan.recommended && (
                 <div style={{ 
                   position: 'absolute', 
                   top: '-15px', 
@@ -684,48 +803,44 @@ const Pricing = ({ theme }) => {
                   transform: 'translateX(-50%)', 
                   backgroundColor: colors.accent, 
                   color: '#FFF', 
-                  padding: '4px 12px', 
-                  borderRadius: '12px', 
+                  padding: '0.4rem 1rem', 
+                  borderRadius: '20px', 
                   fontSize: '0.75rem', 
-                  fontWeight: '700' 
+                  fontWeight: '800', 
+                  textTransform: 'uppercase' 
                 }}>
-                  MOST POPULAR
+                  Most Popular
                 </div>
               )}
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>{p.name}</h3>
-              <p style={{ color: colors.muted, marginBottom: '2rem', fontSize: '0.95rem' }}>{p.desc}</p>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>{plan.name}</h3>
+              <p style={{ color: colors.muted, fontSize: '0.9rem', marginBottom: '2rem', lineHeight: '1.5' }}>{plan.description}</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '2rem' }}>
-                <span style={{ fontSize: '3rem', fontWeight: '800' }}>${p.price}</span>
-                <span style={{ color: colors.muted, fontSize: '1rem' }}>/{p.period === 'mo' ? 'mo' : 'proj'}</span>
+                <span style={{ fontSize: '3rem', fontWeight: '800' }}>${plan.price}</span>
+                <span style={{ color: colors.muted, fontWeight: '500' }}>{plan.period}</span>
               </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 2.5rem 0' }}>
-                {p.features.map((f, j) => (
-                  <li key={j} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.75rem', 
-                    marginBottom: '1rem', 
-                    fontSize: '0.95rem' 
-                  }}>
-                    <CheckCircle2 size={18} style={{ color: colors.accent }} /> {f}
-                  </li>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
+                {plan.features.map((feat, fIdx) => (
+                  <div key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem', fontWeight: '500' }}>
+                    <CheckCircle2 size={18} color={colors.accent} /> {feat}
+                  </div>
                 ))}
-              </ul>
-              <a href="#contact" style={{ 
-                display: 'block', 
-                textAlign: 'center', 
-                backgroundColor: p.highlight ? colors.accent : colors.secondary, 
-                color: p.highlight ? '#FFF' : colors.text, 
+              </div>
+              <button style={{ 
+                width: '100%', 
                 padding: '1rem', 
                 borderRadius: '12px', 
-                textDecoration: 'none', 
-                fontWeight: '600',
-                transition: 'all 0.2s ease'
+                fontWeight: '700', 
+                cursor: 'pointer', 
+                transition: 'all 0.2s ease',
+                backgroundColor: plan.recommended ? colors.accent : colors.text, 
+                color: plan.recommended ? '#FFF' : colors.bg, 
+                border: 'none' 
               }}
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                Get Started
-              </a>
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                {plan.buttonText}
+              </button>
             </div>
           ))}
         </div>
@@ -736,150 +851,161 @@ const Pricing = ({ theme }) => {
 
 const Contact = ({ theme }) => {
   const colors = THEMES[theme];
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', project: '', budget: '5k-10k' });
+  const [formState, setFormState] = useState('idle');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
+    setFormState('submitting');
+    setTimeout(() => setFormState('success'), 1500);
   };
 
   return (
-    <section id="contact" style={{ padding: '8rem 2rem', backgroundColor: colors.bg }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
-        <div>
-          <h2 style={{ fontSize: '3rem', fontWeight: '800', color: colors.text, marginBottom: '1.5rem' }}>
-            Let's build <span style={{ color: colors.accent }}>something</span> significant.
-          </h2>
-          <p style={{ fontSize: '1.2rem', color: colors.muted, marginBottom: '3rem', lineHeight: '1.6' }}>
-            Currently accepting 2 new partners for Q3. If you're scaling a product and need an unfair advantage in design and strategy, reach out.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: colors.text }}>
-              <div style={{ backgroundColor: colors.secondary, padding: '12px', borderRadius: '12px', color: colors.accent }}><Mail size={20} /></div>
-              <div>hello@axonstudio.design</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: colors.text }}>
-              <div style={{ backgroundColor: colors.secondary, padding: '12px', borderRadius: '12px', color: colors.accent }}><Phone size={20} /></div>
-              <div>+1 (555) 234-5678</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: colors.text }}>
-              <div style={{ backgroundColor: colors.secondary, padding: '12px', borderRadius: '12px', color: colors.accent }}><MapPin size={20} /></div>
-              <div>Remote / New York, NY</div>
+    <section id="contact" style={{ 
+      padding: '8rem 2rem', 
+      backgroundColor: colors.bg, 
+      color: colors.text 
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '4rem' 
+        }}>
+          <div>
+            <span style={{ color: colors.accent, fontWeight: '700', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.1em' }}>Connect</span>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '800', marginTop: '1rem', letterSpacing: '-0.02em', marginBottom: '2rem' }}>
+              Ready to Scale Your Product?
+            </h2>
+            <p style={{ color: colors.muted, fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '3rem' }}>
+              We only take on 2 new clients per month to ensure every project receives our full strategic attention.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', backgroundColor: colors.secondary, borderRadius: '12px', color: colors.accent }}>
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: colors.muted, fontWeight: '600' }}>Email Us</div>
+                  <div style={{ fontWeight: '600' }}>hello@axonstudio.design</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ padding: '0.75rem', backgroundColor: colors.secondary, borderRadius: '12px', color: colors.accent }}>
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: colors.muted, fontWeight: '600' }}>Location</div>
+                  <div style={{ fontWeight: '600' }}>Remote / London / NYC</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div style={{ 
-          backgroundColor: colors.cardBg, 
-          padding: '3rem', 
-          borderRadius: '24px', 
-          border: `1px solid ${colors.border}`,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.05)'
-        }}>
-          {submitted ? (
-            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div style={{ color: colors.accent, marginBottom: '1rem' }}><CheckCircle2 size={48} style={{ margin: '0 auto' }} /></div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Message Received!</h3>
-              <p style={{ color: colors.muted }}>We'll get back to you within 24 business hours.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+
+          <div style={{ 
+            backgroundColor: colors.cardBg, 
+            border: `1px solid ${colors.border}`, 
+            padding: '3rem', 
+            borderRadius: '32px', 
+            boxShadow: '0 30px 60px rgba(0,0,0,0.05)' 
+          }}>
+            {formState === 'success' ? (
+              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                <div style={{ color: colors.accent, marginBottom: '1rem' }}>
+                  <CheckCircle2 size={64} style={{ margin: '0 auto' }} />
+                </div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>Message Received!</h3>
+                <p style={{ color: colors.muted }}>We'll review your details and get back to you within 48 hours.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Name</label>
+                    <input 
+                      required 
+                      type="text" 
+                      style={{ 
+                        padding: '0.8rem', 
+                        borderRadius: '8px', 
+                        border: `1px solid ${colors.border}`, 
+                        backgroundColor: colors.bg, 
+                        color: colors.text 
+                      }} 
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Email</label>
+                    <input 
+                      required 
+                      type="email" 
+                      style={{ 
+                        padding: '0.8rem', 
+                        borderRadius: '8px', 
+                        border: `1px solid ${colors.border}`, 
+                        backgroundColor: colors.bg, 
+                        color: colors.text 
+                      }} 
+                    />
+                  </div>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: colors.muted }}>Name</label>
-                  <input 
-                    required 
-                    type="text" 
+                  <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Service Interested In</label>
+                  <select 
                     style={{ 
-                      padding: '12px', 
+                      padding: '0.8rem', 
                       borderRadius: '8px', 
                       border: `1px solid ${colors.border}`, 
                       backgroundColor: colors.bg, 
-                      color: colors.text,
-                      outline: 'none'
+                      color: colors.text 
                     }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = colors.accent}
-                    onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
+                  >
+                    <option>Product Strategy</option>
+                    <option>Launch Design</option>
+                    <option>Conversion Systems</option>
+                    <option>Custom Package</option>
+                  </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: colors.muted }}>Email</label>
-                  <input 
+                  <label style={{ fontSize: '0.875rem', fontWeight: '600' }}>Project Details</label>
+                  <textarea 
                     required 
-                    type="email" 
+                    rows="4" 
                     style={{ 
-                      padding: '12px', 
+                      padding: '0.8rem', 
                       borderRadius: '8px', 
                       border: `1px solid ${colors.border}`, 
                       backgroundColor: colors.bg, 
-                      color: colors.text,
-                      outline: 'none'
-                    }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = colors.accent}
-                    onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      color: colors.text, 
+                      resize: 'none' 
+                    }} 
                   />
                 </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: colors.muted }}>Project Description</label>
-                <textarea 
-                  required 
-                  rows="4" 
+                <button 
+                  disabled={formState === 'submitting'}
                   style={{ 
-                    padding: '12px', 
-                    borderRadius: '8px', 
-                    border: `1px solid ${colors.border}`, 
-                    backgroundColor: colors.bg, 
-                    color: colors.text,
-                    outline: 'none',
-                    resize: 'none'
+                    backgroundColor: colors.accent, 
+                    color: '#FFF', 
+                    border: 'none', 
+                    padding: '1rem', 
+                    borderRadius: '12px', 
+                    fontSize: '1rem', 
+                    fontWeight: '700', 
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
                   }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = colors.accent}
-                  onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
-                  onChange={(e) => setFormData({...formData, project: e.target.value})}
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: colors.muted }}>Estimated Budget</label>
-                <select 
-                  style={{ 
-                    padding: '12px', 
-                    borderRadius: '8px', 
-                    border: `1px solid ${colors.border}`, 
-                    backgroundColor: colors.bg, 
-                    color: colors.text,
-                    outline: 'none'
-                  }}
-                  onChange={(e) => setFormData({...formData, budget: e.target.value})}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
-                  <option value="5k-10k">$5,000 - $10,000</option>
-                  <option value="10k-20k">$10,000 - $20,000</option>
-                  <option value="20k+">$20,000+</option>
-                </select>
-              </div>
-              <button 
-                type="submit" 
-                style={{ 
-                  backgroundColor: colors.accent, 
-                  color: '#FFF', 
-                  padding: '1rem', 
-                  borderRadius: '12px', 
-                  border: 'none', 
-                  fontWeight: '700', 
-                  cursor: 'pointer', 
-                  fontSize: '1rem',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                Send Inquiry
-              </button>
-            </form>
-          )}
+                  {formState === 'submitting' ? 'Sending...' : 'Send Request'} <ArrowRight size={18} />
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -891,73 +1017,37 @@ const Footer = ({ theme }) => {
   return (
     <footer style={{ 
       padding: '4rem 2rem', 
-      backgroundColor: colors.secondary, 
-      borderTop: `1px solid ${colors.border}`,
+      backgroundColor: colors.cardBg, 
+      borderTop: `1px solid ${colors.border}`, 
       color: colors.text 
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: '800', letterSpacing: '-0.05em' }}>
-              AXON<span style={{ color: colors.accent }}>.</span>STUDIO
-            </div>
-            <p style={{ color: colors.muted, fontSize: '0.9rem', lineHeight: '1.6' }}>
-              An independent design studio focusing on the intersection of psychology, design, and growth strategy.
-            </p>
-          </div>
-          <div>
-            <h4 style={{ fontWeight: '700', marginBottom: '1.5rem' }}>Studio</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-              <a href="#services" style={{ color: colors.muted, textDecoration: 'none' }}>Services</a>
-              <a href="#work" style={{ color: colors.muted, textDecoration: 'none' }}>Work</a>
-              <a href="#pricing" style={{ color: colors.muted, textDecoration: 'none' }}>Pricing</a>
-              <a href="#contact" style={{ color: colors.muted, textDecoration: 'none' }}>Contact</a>
-            </div>
-          </div>
-          <div>
-            <h4 style={{ fontWeight: '700', marginBottom: '1.5rem' }}>Legal</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-              <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>Privacy Policy</a>
-              <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>Terms of Service</a>
-              <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>Cookie Policy</a>
-            </div>
-          </div>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }}>
+        <div style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '-0.04em' }}>
+          AXON<span style={{ color: colors.accent }}>.</span>STUDIO
         </div>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          paddingTop: '3rem', 
-          borderTop: `1px solid ${colors.border}`,
-          fontSize: '0.85rem',
-          color: colors.muted
-        }}>
-          <div>© {new Date().getFullYear()} Axon Studio. All rights reserved.</div>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>Twitter</a>
-            <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>LinkedIn</a>
-            <a href="#" style={{ color: colors.muted, textDecoration: 'none' }}>Dribbble</a>
-          </div>
+        <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', fontWeight: '500', color: colors.muted }}>
+          <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}>Twitter</a>
+          <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}>Dribbble</a>
+          <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}>LinkedIn</a>
+          <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}>Instagram</a>
+        </div>
+        <div style={{ fontSize: '0.875rem', color: colors.muted }}>
+          © {new Date().getFullYear()} Axon Studio. All rights reserved.
         </div>
       </div>
     </footer>
   );
 };
 
-export default function StudioWebsite() {
-  const [theme, setTheme] = useState('light');
+export default function App() {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('studio-theme');
-    if (savedTheme) setTheme(savedTheme);
-  }, []);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('studio-theme', newTheme);
-  };
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -980,22 +1070,10 @@ export default function StudioWebsite() {
     <div style={{ 
       backgroundColor: THEMES[theme].bg, 
       color: THEMES[theme].text, 
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+      fontFamily: 'Inter, system-ui, -apple-system, sans-serif', 
       transition: 'background-color 0.3s ease, color 0.3s ease',
-      scrollBehavior: 'smooth'
+      minHeight: '100vh'
     }}>
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-          body { margin: 0; padding: 0; overflow-x: hidden; }
-          * { box-sizing: border-box; }
-          html { scroll-behavior: smooth; }
-          @media (max-width: 768px) {
-            .md-hidden { display: none !important; }
-            .md-flex { display: flex !important; }
-          }
-        `}
-      </style>
       <Navbar 
         theme={theme} 
         toggleTheme={toggleTheme} 
@@ -1005,6 +1083,7 @@ export default function StudioWebsite() {
       <Hero theme={theme} />
       <Services theme={theme} />
       <Work theme={theme} />
+      <Process theme={theme} />
       <Pricing theme={theme} />
       <Contact theme={theme} />
       <Footer theme={theme} />
